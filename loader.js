@@ -2,7 +2,7 @@ const path = require('path')
 const { promisify } = require('util')
 const fs = require('fs')
 const SVGO = require('svgo')
-const { getOptions } = require('loader-utils')
+const { getOptions,interpolateName } = require('loader-utils')
 const merge = require('merge-deep')
 const JoyCon = require('joycon').default
 const toSFC = require('.')
@@ -11,8 +11,9 @@ module.exports = async function(source) {
   this.cacheable()
 
   const cb = this.async()
-  const { svgoConfig } = getOptions(this) || {}
-
+  const { svgoConfig, attachFile } = getOptions(this) || {}
+  const interpolatedName = interpolateName(this, "[name]", {content:''});
+  
   try {
     if (this.issuer && this.issuer.endsWith('.css')) {
       throw new Error(
@@ -32,7 +33,7 @@ module.exports = async function(source) {
         .then(res => res.data)
     }
 
-    const { component } = await toSFC(source)
+    const { component } = await toSFC(source,interpolatedName,attachFile)
     cb(null, component)
   } catch (err) {
     cb(err)

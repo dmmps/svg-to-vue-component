@@ -22,11 +22,18 @@ const plugin = () => tree => {
   })
 }
 
-const createComponent = svg => {
-  return `<template>\n${svg}\n</template>`
+const createComponent = (svg,name,attachFile) => {
+  var result=`<template>\n${svg}\n</template>`
+  if(attachFile && attachFile.ts){
+		result+=`<script lang ="ts" src="./${name}.ts"></script>`
+	}
+	if (attachFile && attachFile.scss){
+			result+=`<style scoped src="./${name}.scss"></script>`
+	}
+  return result;
 }
 
-module.exports = (input, { sync } = {}) => {
+module.exports = (input,name,attachFile, { sync } = {}) => {
   const stream = posthtml([plugin()]).process(input, {
     sync,
     recognizeSelfClosing: true
@@ -34,9 +41,9 @@ module.exports = (input, { sync } = {}) => {
 
   if (stream.then) {
     return stream.then(res => ({
-      component: createComponent(res.html)
+      component: createComponent(res.html,name,attachFile)
     }))
   }
 
-  return { component: createComponent(stream.html) }
+  return { component: createComponent(stream.html,name,attachFile) }
 }
